@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gpx version="1.1" creator="pi-gps 2019" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<metadata>
+		<name>pi-gps</name>
+	</metadata>
+	<trk>
+		<name>Cycling</name>
+		<trkseg>
+			<trkpt lat="50.08046" lon="20.01928">
+				<ele>316.0</ele>
+				<time>2019-03-28T16:44:58.232784</time>
+			</trkpt>
+			<trkpt lat="50.08047" lon="20.01929">
+				<ele>316.0</ele>
+				<time>2019-03-28T16:44:59.294256</time>
+			</trkpt>
+			<trkpt lat="50.08051" lon="20.0193">
+				<ele>316.1</ele>
+				<time>2019-03-28T16:45:00.355758</time>
+			</trkpt>
+			<trkpt lat="50.0805" lon="20.01929">
+				<ele>316.1</ele>
+				<time>2019-03-28T16:45:01.417396</time>
+			</trkpt>
+		</trkseg>
+	</trk>
+</gpx>
+		</trkseg>
+	</trk>
+</gpx>

@@ -4,15 +4,14 @@
 import time
 import datetime
 import serial
-from pygps import *
+from pigps import *
 
 #serial setup
 ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout=0.5)
 
 #create file
-#filename = str(datetime.datetime.now().isoformat()) + '.gpx'
-filename = 'log.gpx'
-i=1
+filename = str(datetime.datetime.now().isoformat()) + '.gpx'
+i=0
 
 #xml data
 xml_version = "1.0"
@@ -21,7 +20,7 @@ standalone="yes"
 
 #gpx data
 gpx_version="1.1" 
-creator="TomTom.2014 with Barometer" 
+creator="pi-gps 2019" 
 xsi_schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
 xmlns="http://www.topografix.com/GPX/1/1"
 xmlns_gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
@@ -33,6 +32,7 @@ activity = "Cycling"
 
 try:
 	f=open(filename,"w+")
+	print("Utworzono plik o nazwie {}".format(filename))
 	
 	f.write("<?xml version=\"{}\" encoding=\"{}\" standalone=\"{}\"?>\n".format(xml_version, encoding, standalone))
 	f.write("<gpx version=\"{}\" creator=\"{}\" xsi:schemaLocation=\"{}\" xmlns=\"{}\" xmlns:gpxtpx=\"{}\" xmlns:xsi=\"{}\">\n".format(gpx_version, creator, xsi_schemaLocation, xmlns, xmlns_gpxtpx, xmlns_xsi))
@@ -42,16 +42,16 @@ try:
 	f.write("\t\t<trkseg>\n")
 		
 	
-	while (i<61):
+	while (i<4):
 		try:
 			newdata = ser.readline()
 			newdata = str(newdata, 'utf-8')
 			if(newdata.find("$GPGGA") == 0):
-				print("Step nr: {}".format(i))
 				f.write("\t\t\t<trkpt lat=\"{}\" lon=\"{}\">\n".format(getLat(newdata), getLon(newdata)))
 				f.write("\t\t\t\t<ele>{}</ele>\n".format(getAlt(newdata)))
 				f.write("\t\t\t\t<time>{}</time>\n".format(datetime.datetime.now().isoformat()))
 				f.write("\t\t\t</trkpt>\n")
+				print("time: {} lat: {} lon: {} ".format(getTime(newdata),getLat(newdata),getLon(newdata)))
 				
 				i+=1
 				time.sleep(1)
@@ -62,6 +62,9 @@ try:
 	f.write("</gpx>\n")
 	
 finally:
+	f.write("\t\t</trkseg>\n")
+	f.write("\t</trk>\n")
+	f.write("</gpx>\n")
 	f.close()
 	
 
