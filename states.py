@@ -4,74 +4,44 @@ import serial
 import sys
 from pigps import *
 
-#std_ret == 0
-def menu(): 
-    print("\n>>>  MAIN MENU  <<<")
-    print("1. cycling")
-    print("2. settings")
-    print("3. exit")
-    std_ret = 0
-    try:
-        std_ret = int(input("Transition: "))
-    except:
-        std_ret = 0
-    return std_ret
+class States:
+    def __init__(self, state_number, header_name, active_flag, transitions_to = [], states_list = []):
+        self.state_number = state_number
+        self.header_name = header_name
+        self.active_flag = active_flag
+        self.transitions_to = transitions_to
+        states_list.append(self.state_number)
+
+    def set_active_flag(self):
+        self.active_flag = 1
+
+    def reset_active_flag(self):
+        self.active_flag = 0        
     
-#std_ret == 1
-def cycling():
-    print("\n>>>  CYCLING  <<<")
-    try:
-        std_ret = int(input("Transition: "))
-    except:
-        std_ret = 0
-    return std_ret   
+    def print_header(self):
+        print("\n>>>  {}  <<<".format(self.header_name))
 
-#std_ret == 2
-def settings():
-    print("\n>>>  SETTINGS  <<<")
-    try:
-        std_ret = int(input("Transition: "))
-    except:
-        std_ret = 0
-    return std_ret   
+    def print_content(self):
+        print("Number of screen: {}".format(self.state_number))
+    
+    def _main(self):
+        self.set_active_flag()
+        self.print_header()
+        self.print_content()
+        print("Active flag before: {}".format(self.active_flag))
+        self.reset_active_flag()
+        print("Active flag after: {}".format(self.active_flag))
 
-#std_ret == 3
-def exit():
-    print("\n>>>  EXIT  <<<")
-    print("------- pi-gps 2019 -------")
-    sys.exit()
+class Menu(States):
+    pass
 
+class Cycling(States):
+    pass
 
-def init():
-    try:
-        #serial setup
-        ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout=0.5)
+class Settings(States):
+    pass
 
-        #create file
-        filename = str(datetime.datetime.now().isoformat()) + '.gpx'
+class Exit(States):
+    pass
 
-        #xml data
-        xml_version = "1.0"
-        encoding = "UTF-8"
-        standalone="yes"
-
-        #gpx data
-        gpx_version="1.1" 
-        creator="pi-gps 2019" 
-        xsi_schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
-        xmlns="http://www.topografix.com/GPX/1/1"
-        xmlns_gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
-        xmlns_xsi="http://www.w3.org/2001/XMLSchema-instance"
-            
-        #metadata
-        name="pi-gps"
-        activity = "Cycling"
-
-        #return
-        std_ret = 1
-
-    except:
-        std_ret = 0
-        
-    return std_ret
 
