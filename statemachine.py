@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
-import datetime
-import serial
-from pigps import *
+#import time
+#import datetime
+#import serial
+#from pigps import *
 from states import *
 
 #Screen objects
