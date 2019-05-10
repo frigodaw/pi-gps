@@ -10,9 +10,12 @@ from states import *
 #Screen objects
 states_list = []
 menu     =     Menu(0, "MENU",     0, [1,3], states_list)
-cycling  =  Cycling(1, "CYCLING",  0, [2,3], states_list)
+cycling  =  Cycling(1, "CYCLING",  0, [2,3,11], states_list)
 settings = Settings(2, "SETTINGS", 0, [0,3], states_list)
 exit     =     Exit(3, "EXIT",     0, [3], states_list)
+
+cycling_running  =  Cycling(11, "CYCLING RUNNING",  0, [12], states_list)
+cycling_paused   =  Cycling(12, "CYCLING PAUSED",  0, [1,11], states_list)
 
 #Function to change screen content
 def start_state(state_nr):
@@ -20,7 +23,9 @@ def start_state(state_nr):
         0: menu._main,
         1: cycling._main,
         2: settings._main,
-        3: exit._main
+        3: exit._main,
+        11: cycling_running.running,
+        12: cycling_paused.paused
     }
     func = switcher.get(state_nr, "Not found!")
     return func()    

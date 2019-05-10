@@ -80,36 +80,55 @@ class Cycling(States):
     def print_basic_data(self):
         try:
             self.newdata = self.ser.readline()
-            print(self.newdata)
+            self.newdata = str(self.newdata, 'utf-8')
             if(self.newdata.find("$GPGGA") == 0):
+                print("\n{}".format(self.newdata.rstrip()))	#remove EOL
                 print("Latitude:  {}".format(getLat(self.newdata)))
                 print("Longitude: {}".format(getLon(self.newdata)))
                 print("Altitude:  {}".format(getAlt(self.newdata)))
                 print("    Time:  {}".format(getTime(self.newdata)))
                 self.err = False
-                print(self.err)
             else:
                 self.print_basic_data()
         except:
             print("Trying to fix...")
+            time.sleep(1)
             self.err = True
 
     def print_calc_data(self):
         if(self.err == False):
-            print(self.err)
             print("   Speed:  -")
             print("Distance:  -")
-        else:
-            print("Trying to fix...")
 
     def _main(self):
+        self.say_hello()
+        self.setup()
+        print("        __         ")
+        print("      __\ \        ")
+        print("    (___)) )       ")
+        print("        /_/        ")
+        self.transition()
+        #threading.Thread(target=self.transition).start()
+        #while (dest == self.state_number):
+        #    self.print_basic_data()
+        #    self.print_calc_data()
+
+    def running(self):
         self.say_hello()
         self.setup()
         threading.Thread(target=self.transition).start()
         while (dest == self.state_number):
             self.print_basic_data()
             self.print_calc_data()
-            time.sleep(1)
+
+    def paused(self):
+        self.say_hello()
+        print("     __    __      ")
+        print("    |  |  |  |     ")
+        print("    |  |  |  |     ")
+        print("    |__|  |__|     ")
+        self.transition()
+
 
 
 class Settings(States):
