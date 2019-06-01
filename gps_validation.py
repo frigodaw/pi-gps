@@ -12,6 +12,29 @@ GPGGA_basic = "$GPGGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xx
 GPGGA = "$GPGGA,134658.00,5106.97,N,11402.30,W,2,09,1.0,1048.4,M,-16.27,M,08,AAAA*60"
 ####### "$GPGGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,xxxx.x,M,zxx.xx,M,x.x,xxxx"
 GPGGA_commas = []
+whole_data = []
+cnt = 0
+header = ""
+
+"""while True:
+	try:
+		newdata = ser.readline()
+		newdata = str(newdata, 'utf-8')
+		if(len(header) == 0):
+			header = newdata[0:6]
+		if((newdata[0:6] == header) and (len(whole_data) > 0)):
+			cnt += 1
+			print("No. {}".format(cnt))
+			for i in range(len(whole_data)):
+				print(whole_data[i])
+			print("\n\n")
+			whole_data = []
+			whole_data.append(newdata)
+		whole_data.append(newdata)	
+	except:
+		pass"""
+
+
 while True:	
 	try:
 		newdata = ser.readline()
@@ -47,4 +70,6 @@ while True:
 
 	except:
 		print("Trying to fix...")
+
+
 
