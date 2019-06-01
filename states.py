@@ -33,7 +33,7 @@ class States:
     def reset_active_flag(self):
         self.active_flag = 0        
     
-    #Shows number of the active state
+    #Shows name of the active state
     def print_header(self):
         print("\n>>>  {}  <<<".format(self.header_name))
 
@@ -49,10 +49,11 @@ class States:
     def transition(self):
         global dest
         try:
-            dest = int(input("Transition to: "))
+            tmp = int(input("Transition to: "))
         except: 
             ValueError      #To handle with incorrect input
-        if dest in self.transitions_to:
+        if tmp in self.transitions_to:
+            dest = tmp
             return dest
         else:
             return self.transition()
@@ -76,17 +77,19 @@ class Cycling(States):
         self.ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout=0.5)
         self.newdata = self.ser.readline()
         self.newdata = str(self.newdata, 'utf-8')
+        self.cycle = 1      #dont work as it should, reset after pause
 
     def print_basic_data(self):
         try:
             self.newdata = self.ser.readline()
             self.newdata = str(self.newdata, 'utf-8')
             if(self.newdata.find("$GPGGA") == 0):
-                print("\n{}".format(self.newdata.rstrip()))	#remove EOL
+                print("\n{}) {}".format(self.cycle, self.newdata.rstrip()))	#remove EOL
                 print("Latitude:  {}".format(getLat(self.newdata)))
                 print("Longitude: {}".format(getLon(self.newdata)))
                 print("Altitude:  {}".format(getAlt(self.newdata)))
                 print("    Time:  {}".format(getTime(self.newdata)))
+                self.cycle += 1
                 self.err = False
             else:
                 self.print_basic_data()
@@ -102,7 +105,7 @@ class Cycling(States):
 
     def _main(self):
         self.say_hello()
-        self.setup()
+        #self.setup()
         print("        __         ")
         print("      __\ \        ")
         print("    (___)) )       ")
