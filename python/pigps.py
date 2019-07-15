@@ -25,10 +25,11 @@ def findDot(data, start, stop):
 			return ret
 	return ret
 
-def getTime(data):			#GPPGA
-	k = findComma(data, 1)	#offset
-	end = findComma(data, 2)
-	time_zone = 2
+#returns time in string format
+def getTime(data):				#GPPGA
+	k = findComma(data, 1)	 	#comma before expression
+	end = findComma(data, 2) 	#comma after expression
+	time_zone = 2				#current time zone
 	if(data.find("$GPGGA") == 0 and k>0 and end-k == 10):
 		try:
 			time_total_s = int(data[k+1:k+3])*3600 + int(data[k+3:k+5])*60 + int(data[k+5:k+7]) + time_zone*3600
@@ -38,21 +39,21 @@ def getTime(data):			#GPPGA
 			time_m = int((time_total_s - time_h*3600)/60)
 			time_s = int(time_total_s - time_h*3600 - time_m*60)
 			time = str(time_h) + ':' + str(time_m) + ':' + str(time_s)
-			print(time)
-			#if(len(time) == 8):		#no zeros
-			#	return time
-			#else:
-			for i in range(len(time)):
-				if(time[i] == ':'):
-					time = time[0:i-1] + '0' + time[i-1:]					
-					print(time)
-			print(time)
+			i = 0
+			while(len(time) != 8):
+				if(i==7 and len(time) == 7):
+					time = time[0:i-1] + '0' + time[i-1:]
+				if(time[i] == ':' and (time[i-2] == ':' or i == 1)):
+					time = time[0:i-1] + '0' + time[i-1:]		
+					i += 1
+				i += 1
 			return time					
 		except:
 			return -1
 	else:
 		return -1
-			
+
+#returns postition's latitude		
 def getLat(data):				#GPPGA
 	k = findComma(data, 2)	 	#comma before expression
 	end = findComma(data, 3) 	#comma after expression
@@ -71,7 +72,8 @@ def getLat(data):				#GPPGA
 			return -1
 	else:
 		return -1
-			
+
+#returns postition's longitude		
 def getLon(data):				#GPPGA
 	k = findComma(data, 4)	 	#comma before expression
 	end = findComma(data, 5) 	#comma after expression
@@ -91,8 +93,9 @@ def getLon(data):				#GPPGA
 	else:
 		return -1
 			
-def getFixQuality(data):	#GPPGA
-	k = findComma(data, 6)	#offset
+#returns fix quality
+def getFixQuality(data):		#GPPGA
+	k = findComma(data, 6)	 	#comma before expression
 	if(data.find("$GPGGA") == 0 and k>0):
 		try:
 			fix = int(data[k+1])
@@ -102,9 +105,10 @@ def getFixQuality(data):	#GPPGA
 	else:
 		return -1
 	
-def getAlt(data):			#GPPGA
-	k = findComma(data, 9)	#offset
-	end = findComma(data, 10)
+#returns altitude
+def getAlt(data):				#GPPGA
+	k = findComma(data, 9)	 	#comma before expression
+	end = findComma(data, 10)	#comma after expression
 	if(data.find("$GPGGA") == 0 and k>0):
 		try:
 			alt = float(data[k+1:end])
@@ -114,7 +118,7 @@ def getAlt(data):			#GPPGA
 	else:
 		return -1
 
-
+#returns date
 def getDate(data):			#GPRMC
 	if(data.find("$GPRMC") == 0):	#check if line is correct
 		try:
