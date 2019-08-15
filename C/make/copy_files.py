@@ -30,24 +30,27 @@ if __name__ == "__main__":
       else:
          #check if there are any files in directory
          if(len(x[2]) > 0):
-            print("Entering path: {}".format(path))
-            print("Files: {}".format(x[2]))
+            #print("Entering path: {}".format(path))
+            #print("Files: {}".format(x[2]))
             os.chdir(mainPath + path)
-            print(os.getcwd())
+            #print(os.getcwd())
 
             #copy only .c and .h files
             for file in x[2]:
                if(file.endswith('.c')):
                   cList.append(file)
                   copy(file, copyPath)
-                  print(file)
+                  #print(file)
                elif(file.endswith('.h')):
                   hList.append(file)
                   copy(file, copyPath)
-                  print(file)
+                  #print(file)
+               elif(file.endswith('Makefile')):
+                  copy(file, copyPath)
+                  #print(file)
             os.chdir(mainPath)
-         print("\n")
 
+   print("Copied files: ")
    for h in hList:
       print(h)
 

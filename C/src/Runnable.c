@@ -1,20 +1,8 @@
-void Runnable_10ms(void);
-void Runnable_100ms(void);
-void Runnable_1000ms(void);
+#include <stdio.h>
 
-void Runnable_10ms(void)
+int Runnable_foo(void)
 {
+    printf("Runnable.c");
     
-}
-
-
-void Runnable_100ms(void)
-{
-    
-}
-
-
-void Runnable_1000ms(void)
-{
-    
+    return 0;
 }
