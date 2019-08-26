@@ -1,9 +1,18 @@
-#ifndef PI_LOGGER_H
-# define PI_LOGGER_H
+#ifndef GPS_H
+# define GPS_H
+
+// start of includes area
+# include "StdTypes.h"
+// end of include area
 
 
-extern int Gps_foo(void);
-#define TRZY 3
+// start of variables area
+static const char *Gps_serialDirectory = "/dev/ttyS0";
+// end of variable sarea
 
 
-#endif  /* PI_LOGGER_H */ 
+// start of functions area
+Std_ReturnType Gps_Init(void);
+// end of functions area
+
+#endif  /* GPS_H */ 

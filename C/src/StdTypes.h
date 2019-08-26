@@ -19,8 +19,9 @@ typedef unsigned long long      uint64;     /*                    0 .. 184467440
 typedef float                   float32;
 typedef double                  float64;
 
-
-
+typedef uint8   Std_ReturnType;
+# define TRUE   1u
+# define FALSE  0u
 
 
 #endif  /* STD_TYPES_H */ 

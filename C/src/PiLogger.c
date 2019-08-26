@@ -6,7 +6,8 @@
 int main()
 {
     printf("Hello world!\n");
-    Gps_foo();
+    Gps_Init();
+
 
     return 0;
 }

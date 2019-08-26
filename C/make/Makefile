@@ -6,7 +6,8 @@ LIBS = -lm
 
 CC = gcc
 NAME = start
-SRC=$(wildcard *.c)
+SRC = $(wildcard *.c)
+DEPS = $(wildcard *.h)
 
 all: main
 
@@ -16,4 +17,4 @@ clean:
 	$(CC) -c $(INCLUDES) $(CFLAGS) $<
 
 main: $(SRC)
-	$(CC) $(SRC) $(LIBS) -o $(NAME)
+	$(CC) $(SRC) $(DEPS) $(LIBS) -o $(NAME)

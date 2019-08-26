@@ -20,9 +20,10 @@ os.system('python3 copy_files.py')
 print("### Compiling in progres")
 os.system('cd ../out/source_files && make')
 
-#move binary file to /out
+#move binary file to /out and /make
 print("### Moving binary file")
-os.system('mv ../out/source_files/start ../out')
+os.system('cp ../out/source_files/start ../out')
+os.system('mv ../out/source_files/start ../make')
 
 #remove temporary directory
 print("### Deleting temporary directory")
@@ -31,4 +32,9 @@ os.system('rm -rf ../out/source_files')
 end = time()
 time_elapsed = round((end - start), 3)
 print("\nTime: {}s".format(time_elapsed))
-print("************* FINISH *************")
+print("************* FINISH *************\n\n")
+
+
+#run program
+print("### Run main program")
+os.system('./start')
