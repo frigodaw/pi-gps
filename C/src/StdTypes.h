@@ -20,8 +20,12 @@ typedef float                   float32;
 typedef double                  float64;
 
 typedef uint8   Std_ReturnType;
+# define OK     0u
+# define NOK    1u
+
 # define TRUE   1u
 # define FALSE  0u
+
 
 
 #endif  /* STD_TYPES_H */ 

@@ -36,5 +36,5 @@ print("************* FINISH *************\n\n")
 
 
 #run program
-print("### Run main program")
+#print("### Run main program")
 os.system('./start')

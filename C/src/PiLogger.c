@@ -2,12 +2,38 @@
 #include "PiLogger.h"
 #include "Gps.h"
 
-/* Main loop of the program.*/
+
+void PiLogger_Init(void)
+{
+   printf("\n +----------------------------------+");
+   printf("\n |          Pi-Gps start            |");
+   printf("\n +----------------------------------+ \n\n");
+
+    Gps_Init();
+}
+
+void PiLogger_Cyclic(void)
+{
+   Gps_ReadData();
+}
+
+void PiLogger_End(void)
+{
+   Gps_TerminateConnection();
+}
+
 int main()
 {
-    printf("Hello world!\n");
-    Gps_Init();
+   PiLogger_Init();
 
 
-    return 0;
+   while(1)
+   {
+      PiLogger_Cyclic();
+   }
+
+
+   PiLogger_End();
+
+   return 0;
 }
