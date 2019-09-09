@@ -1,10 +1,37 @@
 #include <stdio.h>
 #include "Gps.h"
 
+/* Executes only one time to initialize data */
 Std_ReturnType Gps_Init(void)
 {
    Std_ReturnType retVal = OK;
 
+   retVal |= Gps_SerialInit();
+   retVal |= Gps_resetDataInit();
+
+   return retVal;
+}
+
+Std_ReturnType Gps_Main(void)
+{
+   Std_ReturnType retVal = OK;
+   char dataBuffer[GPS_BUFFERSIZE];
+
+   retVal |= Gps_GetData(dataBuffer);
+
+   if(OK == retVal)  //data available
+   {
+      /* Start of data filtering, check whether data starts with given string */
+      Gps_FilterData(dataBuffer, GPS_GPGGA, GPS_ENUM_GPGGA);
+      //Gps_FilterData(dataBuffer, GPS_GPRMC, GPS_ENUM_GPRMC);
+
+      Gps_GetFilteredData_GPGGA(dataBuffer);
+   }
+}
+
+Std_ReturnType Gps_SerialInit(void)
+{
+   Std_ReturnType retVal = OK;
 
    /*------------------------------- Opening the Serial Port -------------------------------*/
    Gps_rawData.fileDescriptor = open(Gps_serialDirectory, O_RDONLY | O_NOCTTY);
@@ -53,16 +80,23 @@ Std_ReturnType Gps_Init(void)
    return retVal;
 }
 
+Std_ReturnType Gps_resetDataInit(void)
+{
+   Std_ReturnType retVal = OK;
 
-Std_ReturnType Gps_ReadData(void)
+
+   return retVal;
+}
+
+/* Read raw data from serial */
+Std_ReturnType Gps_GetData(char* buffer)
 {
    Std_ReturnType retVal = OK;
    uint16 bytesRead = 0;    /* Number of bytes read by the read() system call */
-   char dataBuffer[GPS_BUFFERSIZE];
 
-   memset(dataBuffer, 0, GPS_BUFFERSIZE);                                        /* Set zeros to buffer */
-   tcflush(Gps_rawData.fileDescriptor, TCIFLUSH);                                /* Discards old data in the rx buffer */
-   bytesRead = read(Gps_rawData.fileDescriptor, &dataBuffer, GPS_BUFFERSIZE);    /* Read the data                      */
+   memset(buffer, 0, GPS_BUFFERSIZE);                                         /* Set zeros to buffer */
+   tcflush(Gps_rawData.fileDescriptor, TCIFLUSH);                             /* Discards old data in the rx buffer */
+   bytesRead = read(Gps_rawData.fileDescriptor, buffer, GPS_BUFFERSIZE);      /* Read the data                      */
 
    if(bytesRead == - 1)
    {
@@ -71,42 +105,38 @@ Std_ReturnType Gps_ReadData(void)
    }
    else
    {
-      //printf("%s  \n", dataBuffer);       //debug
-
-      /* Start of data filtering, check whether data starts with given string */
-      Gps_GetData(dataBuffer, GPS_GPGGA, GPS_ENUM_GPGGA);
-      //Gps_GetData(dataBuffer, GPS_GPRMC, GPS_ENUM_GPRMC);
-
+      /* ok */
+      //printf("%s  \n", buffer);       //debug
    }
    return retVal;
 }
 
-
+/* Closes the serial port */
 void Gps_TerminateConnection(void)
 {
-   /* Close the serial port */
    close(Gps_rawData.fileDescriptor); 
 }
 
-void Gps_GetData(char* buffer, char* sentence, uint8 sentecePosition)
+/* Selects demanded string from serial and puts it to the array */
+void Gps_FilterData(char* buffer, char* sentence, uint8 sentecePosition)
 {
    if(!strncmp(buffer, sentence, GPS_SENTENCELENGTH))
    {
       /* Select place to put new gps data */
-      if(Gps_rawData.bufferPtr[sentecePosition] < GPS_STOREDRECORDS)
+      if(Gps_rawData.currentIdx[sentecePosition] < GPS_STOREDRECORDS)
       {
          /* ok */
       }
       else
       {
-         Gps_rawData.bufferPtr[sentecePosition] = 0;
+         Gps_rawData.currentIdx[sentecePosition] = 0;
       }
 
       /* Replace the oldest readout with the current one */
-      strncpy(Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.bufferPtr[sentecePosition]], buffer, GPS_BUFFERSIZE);
-      printf("%d) %s \n", Gps_rawData.bufferPtr[sentecePosition], Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.bufferPtr[sentecePosition]]); //debug
+      strncpy(Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.currentIdx[sentecePosition]], buffer, GPS_BUFFERSIZE);
+      printf("%d) %s \n", Gps_rawData.currentIdx[sentecePosition], Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.currentIdx[sentecePosition]]); //debug
       
-      Gps_rawData.bufferPtr[sentecePosition]++;
+      Gps_rawData.currentIdx[sentecePosition]++;
    }
    else
    {
@@ -114,7 +144,26 @@ void Gps_GetData(char* buffer, char* sentence, uint8 sentecePosition)
    }
 }
 
-void Gps_FilterDetailedData_GPGGA()
+/* Selects data from array and puts it to the final logging structure */
+void Gps_GetFilteredData_GPGGA(char* buffer)
 {
-   
+   if(!strncmp(buffer, GPS_GPGGA, GPS_SENTENCELENGTH))
+   {
+      uint8 *idx = &Gps_mainData.currentIdx;
+      char tmpBuffer[GPS_BUFFERSIZE] = {0};
+
+      uint8 firstComma = 6;
+      uint8 timeLength = 6;
+
+      *idx = ((Gps_mainData.currentIdx < GPS_STOREDRECORDS) ? Gps_mainData.currentIdx : 0);
+      printf("*idx=%d \nGps_mainData.currentIdx=%d\n", *idx, Gps_mainData.currentIdx);    //debug
+
+      if((buffer[firstComma] == ',') && (buffer[firstComma+1] != ',') && (buffer[firstComma+timeLength+1] == '.'))
+      {
+         strncpy(tmpBuffer, &buffer[firstComma+1], timeLength);
+         Gps_mainData.data[*idx].time = tmpBuffer;
+         printf("Czas: %s\n", Gps_mainData.data[*idx].time);    //debug
+      }
+      Gps_mainData.currentIdx++;
+   }
 }

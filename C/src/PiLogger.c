@@ -14,7 +14,7 @@ void PiLogger_Init(void)
 
 void PiLogger_Cyclic(void)
 {
-   Gps_ReadData();
+   Gps_Main();
 }
 
 void PiLogger_End(void)
