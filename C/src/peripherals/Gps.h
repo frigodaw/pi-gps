@@ -30,6 +30,15 @@ enum Gps_sentencePosition
     GPS_ENUM_GPRMC
 };
 
+enum Gps_gpggaDataSequence
+{
+    GPS_GPGGA_TIME,
+    GPS_GPGGA_LATITUDE,
+    GPS_GPGGA_NS,
+    GPS_GPGGA_LONGITUDE,
+    GPS_GPGGA_WE
+};
+
 typedef struct Gps_readoutData_Tag
 {
     uint8 fileDescriptor;                                                    //used for reading from serial port
@@ -39,11 +48,14 @@ typedef struct Gps_readoutData_Tag
 
 typedef struct Gps_detailedData_Tag
 {
-    char* time;
+    char time[9];
     uint16 latitude;
+    char* NS;
     uint16 longitude;
+    char* WE;
     uint8 fixQuality;
     uint8 satelitesNum;
+    float dilution;
     float altitude;
 } Gps_detailedData_T;
 
