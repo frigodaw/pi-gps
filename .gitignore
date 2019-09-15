@@ -2,3 +2,4 @@ tips.txt
 *.pyc
 __pycache__
 TODO
+.vscode

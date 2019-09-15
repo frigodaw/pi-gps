@@ -13,56 +13,60 @@
 
 
 // start of defines area
-# define GPS_BUFFERSIZE     127
-# define GPS_STOREDRECORDS  5
-# define GPS_SENTENCES      2
+# define GPS_BUFFERSIZE         127u
+# define GPS_STOREDRECORDS      5u
+# define GPS_SENTENCES          2u
 
-# define GPS_SENTENCELENGTH 6
-# define GPS_GPGGA (char*)("$GPGGA")
-# define GPS_GPRMC (char*)("$GPRMC")
+# define GPS_SENTENCELENGTH     6u
+# define GPS_GPGGA              (char*)("$GPGGA")
+# define GPS_GPGGA_TIMESIZE     9u
+# define GPS_GPRMC              (char*)("$GPRMC")
 // end of defines area
 
 
 //start of typdefs and enums area
 enum Gps_sentencePosition
 {
-    GPS_ENUM_GPGGA,
-    GPS_ENUM_GPRMC
+   GPS_ENUM_GPGGA,
+   GPS_ENUM_GPRMC
 };
 
 enum Gps_gpggaDataSequence
 {
-    GPS_GPGGA_TIME,
-    GPS_GPGGA_LATITUDE,
-    GPS_GPGGA_NS,
-    GPS_GPGGA_LONGITUDE,
-    GPS_GPGGA_WE
+   GPS_GPGGA_TIME,
+   GPS_GPGGA_LATITUDE,
+   GPS_GPGGA_NS,
+   GPS_GPGGA_LONGITUDE,
+   GPS_GPGGA_WE,
+   GPS_GPGGA_FIXQUALITY,
+   GPS_GPGGA_SATELITESNUM,
+   GPS_GPGGA_DILUTION,
+   GPS_GPGGA_ALTITUDE
 };
 
 typedef struct Gps_readoutData_Tag
 {
-    uint8 fileDescriptor;                                                    //used for reading from serial port
-    char storageBuffer[GPS_SENTENCES][GPS_STOREDRECORDS][GPS_BUFFERSIZE];    //cyclic buffer to store readouts
-    uint8 currentIdx[GPS_SENTENCES];                                          //helper 'pointer' to Gps_storageBuffer
+    uint8 fileDescriptor;                                           //used for reading from serial port
+    char storageBufferGpgga[GPS_STOREDRECORDS][GPS_BUFFERSIZE];     //cyclic buffer to store readouts
 } Gps_readoutData_T;
 
 typedef struct Gps_detailedData_Tag
 {
-    char time[9];
-    uint16 latitude;
-    char* NS;
-    uint16 longitude;
-    char* WE;
-    uint8 fixQuality;
-    uint8 satelitesNum;
-    float dilution;
-    float altitude;
+   char time[6];
+   float latitude;
+   char NS;
+   float longitude;
+   char WE;
+   uint8 fixQuality;
+   uint8 satelitesNum;
+   float dilution;
+   float altitude;
 } Gps_detailedData_T;
 
 typedef struct Gps_data_Tag
 {
-    Gps_detailedData_T data[GPS_STOREDRECORDS];
-    uint8 currentIdx;
+   Gps_detailedData_T data[GPS_STOREDRECORDS];
+   uint8 currentIdx;
 }  Gps_data_T;
 //end of typdefs and enums area
 
@@ -78,7 +82,7 @@ static Gps_data_T Gps_mainData;                            //structure with deta
 // start of functions area
 Std_ReturnType Gps_Init(void);
 Std_ReturnType Gps_SerialInit(void);
-Std_ReturnType Gps_resetDataInit(void);
+Std_ReturnType Gps_resetDataOnInit(void);
 Std_ReturnType Gps_Main(void);
 Std_ReturnType Gps_GetData(char* buffer);
 void Gps_TerminateConnection(void);

@@ -9,11 +9,12 @@ Std_ReturnType Gps_Init(void)
    Std_ReturnType retVal = OK;
 
    retVal |= Gps_SerialInit();
-   retVal |= Gps_resetDataInit();
+   retVal |= Gps_resetDataOnInit();
 
    return retVal;
 }
 
+/* Main function to call another worker function */
 Std_ReturnType Gps_Main(void)
 {
    Std_ReturnType retVal = OK;
@@ -27,11 +28,11 @@ Std_ReturnType Gps_Main(void)
       Gps_FilterData(dataBuffer, GPS_GPGGA, GPS_ENUM_GPGGA);
       //Gps_FilterData(dataBuffer, GPS_GPRMC, GPS_ENUM_GPRMC);
 
-      //Gps_GetFilteredData_GPGGA(Gps_gpggaOverride);
       Gps_GetFilteredData_GPGGA(dataBuffer);
    }
 }
 
+/* Configuration on init */
 Std_ReturnType Gps_SerialInit(void)
 {
    Std_ReturnType retVal = OK;
@@ -67,7 +68,7 @@ Std_ReturnType Gps_SerialInit(void)
 
    /* Setting Time outs */
    Gps_serialPortSettings.c_cc[VMIN] = 10;  /* Read at least 10 characters */
-   Gps_serialPortSettings.c_cc[VTIME] = 0; /* Wait indefinetly   */
+   Gps_serialPortSettings.c_cc[VTIME] = 0;  /* Wait indefinetly   */
 
    /* Set the attributes to the termios structure */
    if((tcsetattr(Gps_rawData.fileDescriptor,TCSANOW, &Gps_serialPortSettings)) != 0) 
@@ -83,10 +84,24 @@ Std_ReturnType Gps_SerialInit(void)
    return retVal;
 }
 
-Std_ReturnType Gps_resetDataInit(void)
+/* Set data to specyfic values during init */
+Std_ReturnType Gps_resetDataOnInit(void)   
 {
    Std_ReturnType retVal = OK;
-
+   for(uint8 idx; idx < GPS_STOREDRECORDS; idx++)
+   {
+      for(uint8 j=0; j<6; j++)
+         Gps_mainData.data[idx].time[j] = '0';
+      Gps_mainData.data[idx].latitude = 0.f;
+      Gps_mainData.data[idx].NS = '0';
+      Gps_mainData.data[idx].longitude = 0.f;
+      Gps_mainData.data[idx].WE = '0';
+      Gps_mainData.data[idx].fixQuality = 0u;
+      Gps_mainData.data[idx].satelitesNum = 0u;
+      Gps_mainData.data[idx].dilution = 0.f;
+      Gps_mainData.data[idx].altitude = 0.f;
+   }
+   Gps_mainData.currentIdx = 0u;
 
    return retVal;
 }
@@ -97,9 +112,9 @@ Std_ReturnType Gps_GetData(char* buffer)
    Std_ReturnType retVal = OK;
    uint16 bytesRead = 0;    /* Number of bytes read by the read() system call */
 
-   memset(buffer, 0, GPS_BUFFERSIZE);                                         /* Set zeros to buffer */
-   tcflush(Gps_rawData.fileDescriptor, TCIFLUSH);                             /* Discards old data in the rx buffer */
-   bytesRead = read(Gps_rawData.fileDescriptor, buffer, GPS_BUFFERSIZE);      /* Read the data                      */
+   memset(buffer, 0, GPS_BUFFERSIZE);                                      /* Set zeros to buffer */
+   tcflush(Gps_rawData.fileDescriptor, TCIFLUSH);                          /* Discards old data in the rx buffer */
+   bytesRead = read(Gps_rawData.fileDescriptor, buffer, GPS_BUFFERSIZE);   /* Read the data                      */
 
    if(bytesRead == - 1)
    {
@@ -109,7 +124,6 @@ Std_ReturnType Gps_GetData(char* buffer)
    else
    {
       /* ok */
-      //printf("%s  \n", buffer);       //debug
    }
    return retVal;
 }
@@ -123,23 +137,15 @@ void Gps_TerminateConnection(void)
 /* Selects demanded string from serial and puts it to the array */
 void Gps_FilterData(char* buffer, char* sentence, uint8 sentecePosition)
 {
+   static uint8 idx;
    if(!strncmp(buffer, sentence, GPS_SENTENCELENGTH))
    {
-      /* Select place to put new gps data */
-      if(Gps_rawData.currentIdx[sentecePosition] < GPS_STOREDRECORDS)
-      {
-         /* ok */
-      }
-      else
-      {
-         Gps_rawData.currentIdx[sentecePosition] = 0;
-      }
-
       /* Replace the oldest readout with the current one */
-      strncpy(Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.currentIdx[sentecePosition]], buffer, GPS_BUFFERSIZE);
-      printf("%d) %s ", Gps_rawData.currentIdx[sentecePosition], Gps_rawData.storageBuffer[sentecePosition][Gps_rawData.currentIdx[sentecePosition]]); //debug
-      
-      Gps_rawData.currentIdx[sentecePosition]++;
+      strncpy(Gps_rawData.storageBufferGpgga[idx], buffer, GPS_BUFFERSIZE);
+      printf("%d) %s", idx, Gps_rawData.storageBufferGpgga[idx]); //debug
+
+      /* Increment index */
+      idx = (idx < GPS_STOREDRECORDS-1) ? idx+1 : 0u;
    }
    else
    {
@@ -152,50 +158,63 @@ void Gps_GetFilteredData_GPGGA(char* buffer)
 {
    if(!strncmp(buffer, GPS_GPGGA, GPS_SENTENCELENGTH))
    {
-      buffer = "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47";
+      //buffer = "$GPGGA,160915.00,5003.42292,N,01855.72499,E,1,08,1.01,240.5,M,40.7,M,,*5F";
 
-      uint8 *idx = &Gps_mainData.currentIdx;
-      char tmpBuffer[GPS_BUFFERSIZE] = {0};
-
-      *idx = ((Gps_mainData.currentIdx < GPS_STOREDRECORDS) ? Gps_mainData.currentIdx : 0);
-      printf("*idx=%d \nGps_mainData.currentIdx = %d\n", *idx, Gps_mainData.currentIdx);    //debug
-
-
-      sint8 i = 0;
+      char* tmpBuffer = strtok(buffer, ",");
       uint8 sequence = GPS_GPGGA_TIME;
+      uint8 *idx = &Gps_mainData.currentIdx;
+      *idx = ((Gps_mainData.currentIdx < GPS_STOREDRECORDS) ? Gps_mainData.currentIdx : 0u);
 
-      for(uint8 j = 0; j < 66; j++)
-      {
-         /* Add chars to temporary buffer if conditions are met */
-         if((isdigit(*buffer)) || (*buffer == '.'))
+      while (tmpBuffer != NULL) 
+      { 
+         tmpBuffer = strtok(NULL, ",");
+         switch (sequence)
          {
-            tmpBuffer[i] = *buffer;
-            i++;
+            case GPS_GPGGA_TIME:
+               strncpy(Gps_mainData.data[*idx].time, tmpBuffer, 6);
+               break;
+            case GPS_GPGGA_LATITUDE:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].latitude);
+               break;
+            case GPS_GPGGA_NS:
+               sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].NS);
+               break;
+            case GPS_GPGGA_LONGITUDE:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].longitude);
+               break;
+            case GPS_GPGGA_WE:
+               sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].WE);
+               break;
+            case GPS_GPGGA_FIXQUALITY:
+               sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].fixQuality);
+               break;
+            case GPS_GPGGA_SATELITESNUM:
+               sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].satelitesNum);
+               break;
+            case GPS_GPGGA_DILUTION:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].dilution);
+               break;
+            case GPS_GPGGA_ALTITUDE:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].altitude);
+               break;
+            default:
+               break;
          }
-         /* When all data have arrived, check in which place it should be located */
-         else if((*buffer == ',') && (isdigit(*tmpBuffer)))
-         {
-            switch (sequence)
-            {
-               case GPS_GPGGA_TIME:
-                  strncpy(Gps_mainData.data[*idx].time, tmpBuffer, 9);
-                  break;
-               case GPS_GPGGA_LATITUDE:
-                  printf("tmpBuffer = %s\n",tmpBuffer);
-                  Gps_mainData.data[*idx].latitude = atoi(tmpBuffer);
-                  break;
-               default:
-                  break;
-            }
-            sequence++;
-            memset(tmpBuffer, 0, GPS_BUFFERSIZE);
-         }
-         *buffer++;
+         sequence++;
       }
-
-      printf("Gps_mainData.data[%d].time: %s\n", *idx, Gps_mainData.data[*idx].time);              //debug
-      printf("Gps_mainData.data[%d].latitude: %s\n", *idx, Gps_mainData.data[*idx].latitude);      //debug
+      
+      printf("Gps_mainData.data[%d].\n", *idx);
+      printf("          time: %s\n",     Gps_mainData.data[*idx].time);
+      printf("      latitude: %f\n",     Gps_mainData.data[*idx].latitude);
+      printf("            NS: %c\n",     Gps_mainData.data[*idx].NS);      
+      printf("     longitude: %f\n",     Gps_mainData.data[*idx].longitude);
+      printf("            WE: %c\n",     Gps_mainData.data[*idx].WE);
+      printf("    fixQuality: %d\n",     Gps_mainData.data[*idx].fixQuality);
+      printf("  satelitesNum: %d\n",     Gps_mainData.data[*idx].satelitesNum);
+      printf("      dilution: %f\n",     Gps_mainData.data[*idx].dilution);
+      printf("      altitude: %f\n",     Gps_mainData.data[*idx].altitude);
       printf("\n");
+
       Gps_mainData.currentIdx++;
    }
 }
