@@ -9,7 +9,7 @@ void PiLogger_Init(void)
    printf("\n |          Pi-Gps start            |");
    printf("\n +----------------------------------+ \n\n");
 
-    Gps_Init();
+   Gps_Init();
 }
 
 void PiLogger_Cyclic(void)

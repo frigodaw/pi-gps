@@ -44,12 +44,6 @@ enum Gps_gpggaDataSequence
    GPS_GPGGA_ALTITUDE
 };
 
-typedef struct Gps_readoutData_Tag
-{
-    uint8 fileDescriptor;                                           //used for reading from serial port
-    char storageBufferGpgga[GPS_STOREDRECORDS][GPS_BUFFERSIZE];     //cyclic buffer to store readouts
-} Gps_readoutData_T;
-
 typedef struct Gps_detailedData_Tag
 {
    char time[6];
@@ -67,14 +61,16 @@ typedef struct Gps_data_Tag
 {
    Gps_detailedData_T data[GPS_STOREDRECORDS];
    uint8 currentIdx;
+   uint8 fileDescriptor;
+   boolean isActive;
 }  Gps_data_T;
 //end of typdefs and enums area
 
 
 // start of variables area
 static const char *Gps_serialDirectory = "/dev/ttyS0";     //serial port directory
+static uint8 fileDescriptor;                               //used for open and close serial 
 static struct termios Gps_serialPortSettings;              //termios structure to store serial settings
-static Gps_readoutData_T Gps_rawData;                      //structure to store raw strings received from satellite
 static Gps_data_T Gps_mainData;                            //structure with detailed gps data
 // end of variable sarea
 
@@ -82,12 +78,11 @@ static Gps_data_T Gps_mainData;                            //structure with deta
 // start of functions area
 Std_ReturnType Gps_Init(void);
 Std_ReturnType Gps_SerialInit(void);
-Std_ReturnType Gps_resetDataOnInit(void);
+Std_ReturnType Gps_ResetDataOnInit(void);
 Std_ReturnType Gps_Main(void);
 Std_ReturnType Gps_GetData(char* buffer);
 void Gps_TerminateConnection(void);
-void Gps_FilterData(char* buffer, char* sentence, uint8 sentecePosition);
-void Gps_GetFilteredData_GPGGA(char* buffer);
+void Gps_FilterData_GPGGA(char* buffer);
 // end of functions area
 
 #endif  /* GPS_H */ 
