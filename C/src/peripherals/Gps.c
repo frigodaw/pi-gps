@@ -145,54 +145,50 @@ void Gps_FilterData_GPGGA(char* buffer)
 {
    if(!strncmp(buffer, GPS_GPGGA, GPS_SENTENCELENGTH))
    {
-      //buffer = "$GPGGA,160915.00,5003.42292,N,01855.72499,E,1,08,1.01,240.5,M,40.7,M,,*5F";
+      //buffer = strdup("$GPGGA,160915.00,5003.42292,N,01855.72499,E,1,08,1.01,240.5,M,40.7,M,,*5F");
+      //printf("buffer: %s", buffer);
 
-      char* tmpBuffer = strtok(buffer, ",");
-      uint8 sequence = GPS_GPGGA_TIME;
+      char *tmpBuffer;
+      uint8 sequence = GPS_GPGGA_ID;
       uint8 *idx = &Gps_mainData.currentIdx;
       *idx = ((Gps_mainData.currentIdx < GPS_STOREDRECORDS) ? Gps_mainData.currentIdx : 0u);
 
-      while (tmpBuffer != NULL) 
+      while(NULL != (tmpBuffer = strsep(&buffer,",")))
       { 
-         tmpBuffer = strtok(NULL, ",");
-         if(NULL != tmpBuffer)
+         //printf("tmpBuffer: %s\n", tmpBuffer);
+         switch (sequence)
          {
-            switch (sequence)
-            {
-               case GPS_GPGGA_TIME:
-                  strncpy(Gps_mainData.data[*idx].time, tmpBuffer, 6);
-                  break;
-               case GPS_GPGGA_LATITUDE:
-                  sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].latitude);
-                  break;
-               case GPS_GPGGA_NS:
-                  sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].NS);
-                  break;
-               case GPS_GPGGA_LONGITUDE:
-                  sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].longitude);
-                  break;
-               case GPS_GPGGA_WE:
-                  sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].WE);
-                  break;
-               case GPS_GPGGA_FIXQUALITY:
-                  sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].fixQuality);
-                  break;
-               case GPS_GPGGA_SATELITESNUM:
-                  sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].satelitesNum);
-                  break;
-               case GPS_GPGGA_DILUTION:
-                  sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].dilution);
-                  break;
-               case GPS_GPGGA_ALTITUDE:
-                  sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].altitude);
-                  break;
-               default:
-                  break;
-            }
-         }
-         else
-         {
-            /* tmpBuffer is empty */
+            case GPS_GPGGA_TIME:
+               strncpy(Gps_mainData.data[*idx].time, tmpBuffer, 6);
+               break;
+            case GPS_GPGGA_LATITUDE:
+               sscanf(tmpBuffer, "%lf", &Gps_mainData.data[*idx].latitude);
+               Gps_FormatConverter(&Gps_mainData.data[*idx].latitude);
+               break;
+            case GPS_GPGGA_NS:
+               sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].NS);
+               break;
+            case GPS_GPGGA_LONGITUDE:
+               sscanf(tmpBuffer, "%lf", &Gps_mainData.data[*idx].longitude);
+               Gps_FormatConverter(&Gps_mainData.data[*idx].longitude);
+               break;
+            case GPS_GPGGA_WE:
+               sscanf(tmpBuffer, "%c", &Gps_mainData.data[*idx].WE);
+               break;
+            case GPS_GPGGA_FIXQUALITY:
+               sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].fixQuality);
+               break;
+            case GPS_GPGGA_SATELITESNUM:
+               sscanf(tmpBuffer, "%d", &Gps_mainData.data[*idx].satelitesNum);
+               break;
+            case GPS_GPGGA_DILUTION:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].dilution);
+               break;
+            case GPS_GPGGA_ALTITUDE:
+               sscanf(tmpBuffer, "%f", &Gps_mainData.data[*idx].altitude);
+               break;
+            default:
+               break;
          }
          sequence++;
       }
@@ -211,4 +207,14 @@ void Gps_FilterData_GPGGA(char* buffer)
 
       Gps_mainData.currentIdx++;
    }
+}
+
+/* Helper function to convert lon and lat format received from GPS to demanded one */
+void Gps_FormatConverter(double *coordinate)
+{
+   double fractionalPart;
+
+   *coordinate /= GPS_GPPGA_DIV_VALUE;
+   fractionalPart = modf(*coordinate, coordinate);
+   *coordinate += fractionalPart * GPS_GPPGA_MUL_VALUE;
 }

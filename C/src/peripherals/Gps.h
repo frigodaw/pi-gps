@@ -5,6 +5,7 @@
 # include "StdTypes.h"
 # include <stdio.h>
 # include <string.h>
+# include<math.h>
 # include <fcntl.h>   /* File Control Definitions           */
 # include <termios.h> /* POSIX Terminal Control Definitions */
 # include <unistd.h>  /* UNIX Standard Definitions 	   */ 
@@ -13,14 +14,16 @@
 
 
 // start of defines area
-# define GPS_BUFFERSIZE         127u
-# define GPS_STOREDRECORDS      5u
-# define GPS_SENTENCES          2u
+# define GPS_BUFFERSIZE          127u
+# define GPS_STOREDRECORDS       5u
+# define GPS_SENTENCES           2u
 
-# define GPS_SENTENCELENGTH     6u
-# define GPS_GPGGA              (char*)("$GPGGA")
-# define GPS_GPGGA_TIMESIZE     9u
-# define GPS_GPRMC              (char*)("$GPRMC")
+# define GPS_SENTENCELENGTH      6u
+# define GPS_GPGGA               (char*)("$GPGGA")
+# define GPS_GPRMC               (char*)("$GPRMC")
+
+# define GPS_GPPGA_DIV_VALUE     100.f
+# define GPS_GPPGA_MUL_VALUE     (double)(100.f/60.f)
 // end of defines area
 
 
@@ -33,6 +36,7 @@ enum Gps_sentencePosition
 
 enum Gps_gpggaDataSequence
 {
+   GPS_GPGGA_ID,
    GPS_GPGGA_TIME,
    GPS_GPGGA_LATITUDE,
    GPS_GPGGA_NS,
@@ -47,9 +51,9 @@ enum Gps_gpggaDataSequence
 typedef struct Gps_detailedData_Tag
 {
    char time[6];
-   float latitude;
+   double latitude;
    char NS;
-   float longitude;
+   double longitude;
    char WE;
    uint8 fixQuality;
    uint8 satelitesNum;
@@ -83,6 +87,7 @@ Std_ReturnType Gps_Main(void);
 Std_ReturnType Gps_GetData(char* buffer);
 void Gps_TerminateConnection(void);
 void Gps_FilterData_GPGGA(char* buffer);
+void Gps_FormatConverter(double *coordinate);
 // end of functions area
 
 #endif  /* GPS_H */ 
